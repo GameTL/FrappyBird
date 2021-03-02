@@ -14,18 +14,15 @@ resolution_height = 1024  # inital = 1024
 game_background = pygame.image.load("assets/picture/background-day.png").convert()
 game_background = pygame.transform.scale(game_background, (resolution_width, resolution_height)) # STRECH the wallpaper
 '''
-
-
-bird_imgs = [pygame.transform.scale2x(pygame.image.load("assets/picture/redbird-downflap.png")),
-            pygame.transform.scale2x(pygame.image.load("assets/picture/redbird-midflap.png")),
-            pygame.transform.scale2x(pygame.image.load("assets/picture/redbird-upflap.png"))]
-pipe_imgs = pygame.transform.scale2x(pygame.image.load("assets/picture/pipe-green.png"))
-base_imgs = pygame.transform.scale2x(pygame.image.load("assets/picture/base.png"))
-background_imgs = pygame.transform.scale2x(pygame.image.load("assets/picture/background-day.png"))
+window = pygame.display.set_mode((resolution_width, resolution_height))
+background_imgs = pygame.transform.scale(pygame.image.load(os.path.join("imgs","bg.png")).convert_alpha(), (600, 900))
+bird_imgs = [pygame.transform.scale2x(pygame.image.load(os.path.join("imgs","bird" + str(x) + ".png"))) for x in range(1,4)]
+base_img = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs","base.png")).convert_alpha())
 
 
 class Bird():
-    imgs = bird_imgs
+    
+    IMGS = bird_imgs
     MAX_ROTATION = 25 # how much tilt
     ROTATION_VELOCITY = 20 
     ANIMATION_TIME = 5 # how fast the bird flap its wiong
@@ -46,45 +43,58 @@ class Bird():
         self.height = self.y
 
     def move(self):
-        self.tick_count += 1 # pretty much a framerate counter
+        """
+        make the bird move
+        :return: None
+        """
+        self.tick_count += 1
 
-        displacement = self.velocity*self.tick_count + 1.5*self.tick_count**2 # Arc displacement for fine tuning gravity here\
+        # for downward acceleration
+        displacement = self.velocity*(self.tick_count) + 0.5*(3)*(self.tick_count)**2  # calculate displacement
+
+        # terminal velocity
         if displacement >= 16:
-            displacement = 16
+            displacement = (displacement/abs(displacement)) * 16
+
         if displacement < 0:
             displacement -= 2
 
         self.y = self.y + displacement
 
-        if displacement < 0 or self.y < self.height + 50:
+        if displacement < 0 or self.y < self.height + 50:  # tilt up
             if self.tilt < self.MAX_ROTATION:
                 self.tilt = self.MAX_ROTATION
-        else:
+        else:  # tilt down
             if self.tilt > -90:
                 self.tilt -= self.ROTATION_VELOCITY
 
     def draw(self, window):
         self.img_count += 1
 
-        if self.img_count < self.ANIMATION_TIME:
-            self.imgs = self.bird_imgs[0] ####
-        elif self.img_count < self.ANIMATION_TIME*2:
-            self.imgs = self.bird_imgs[1] ####
-        elif self.img_count < self.ANIMATION_TIME*3:
-            self.imgs = self.bird_imgs[2] ####
-        elif self.img_count < self.ANIMATION_TIME*2:
-            self.imgs = self.bird_imgs[1] ####
-        elif self.img_count < self.ANIMATION_TIME*2:
-            self.imgs = self.bird_imgs[0] ####
+        if self.img_count <= self.ANIMATION_TIME:
+            self.img = self.IMGS[0]
+        elif self.img_count <= self.ANIMATION_TIME*2:
+            self.img = self.IMGS[1]
+        elif self.img_count <= self.ANIMATION_TIME*3:
+            self.img = self.IMGS[2]
+        elif self.img_count <= self.ANIMATION_TIME*4:
+            self.img = self.IMGS[1]
+        elif self.img_count == self.ANIMATION_TIME*4 + 1:
+            self.img = self.IMGS[0]
             self.img_count = 0
-        if self.tilt <= -80:
-            self.imgs = self.bird_imgs[1]
-            self.img_count = self.ANIMATION_TIME
 
+        # so when bird is nose diving it isn't flapping
+        if self.tilt <= -80:
+            self.img = self.IMGS[1]
+            self.img_count = self.ANIMATION_TIME*2
+        # For animation of bird, loop through three images
+        
         # this is for rotating the bird up and down with the centre of the image as a pivot
-        rotated_image = pygame.transform.rotate(self.imgs, self.tilt)
-        new_rect = rotated_image.get_rect(centre=self.bird_imgs.get_rect(topleft = (self.x,self.y)).center)
-        window.blit(rotated_image, new_rect.top.left)
+        #rotated_image = pygame.transform.rotate(self.imgs, self.tilt)
+        #new_rect = rotated_image.get_rect(centre=self.bird_imgs.get_rect(topleft = (self.x,self.y)).center)
+        #window.blit(rotated_image, new_rect.top.left)
+        # Fix the rotation later
+        window.blit(self.img, (self.x,self.y))
 
     def get_mask(self):
         return pygame.masl.from_surface(self.imgs)
@@ -92,7 +102,7 @@ class Bird():
 
 def draw_window(window, Bird):
     window.blit(background_imgs, (0, 0))
-
+    #window.blit(Bird.IMGS[0], (0, 0))
     Bird.draw(window)
     pygame.display.update()
 
@@ -106,8 +116,8 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+        #bird.move()
         draw_window(window, bird)
-        pygame.display.update()
 
 
 main()
