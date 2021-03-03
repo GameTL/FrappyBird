@@ -183,8 +183,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 bird.jump()
-            if pipes[0].collide():
-                run = False
+            #if pipes[0].collide():
+                #run = False
             if event.type == pygame.QUIT:
                 run = False
         
@@ -192,7 +192,7 @@ def main():
         rem = []
         for pipe in pipes:
             if pipe.collide(bird):
-                pass
+                run = False
             if pipe.x + pipe.PIPE_TOP.get_width() < 0:
                 rem.append(pipe)
             if not pipe.passed and pipe.x < bird.x:
@@ -219,4 +219,25 @@ D_between_pipes = 700  # distance of pipe spawning
 main()
             
  
-            
+
+#Note from nIKE
+'''
+class Paddle(pygame.sprite.Sprite):
+    def init(self, x, y):
+        super().init()
+        self.image = pygame.Surface([paddle_width, paddle_height])
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.center = [x,y]
+
+    def moveUp(self):
+        if self.rect.y >= 0:
+            self.rect.y -= paddle_velocity
+
+    def moveDown(self):
+        if self.rect.y <= (screen_height - paddle_height):
+            self.rect.y += paddle_velocity
+
+if pygame.sprite.collide_rect(player_1, ball):
+       hit_sound.play()
+'''         
