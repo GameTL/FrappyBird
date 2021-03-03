@@ -7,6 +7,9 @@ pygame.font.init()
 
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
+global run
+run = True
+
 
 BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird1.png"))), pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird2.png"))), pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird3.png")))]
 PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "pipe.png")))
@@ -84,6 +87,7 @@ class Bird:
     def get_mask(self):
         return pygame.mask.from_surface(self.img)
 
+
 class Pipe:
     GAP = 200
     VEL = 5
@@ -117,7 +121,7 @@ class Pipe:
         bird_mask = bird.get_mask()
         top_mask = pygame.mask.from_surface(self.PIPE_TOP)
         bottom_mask = pygame.mask.from_surface(self.PIPE_BOTTOM)
-
+ 
         top_offset = (self.x - bird.x, self.top - round(bird.y))
         bottom_offset = (self.x - bird.x, self.bottom - round(bird.y))
 
@@ -125,8 +129,7 @@ class Pipe:
         b_point = bird_mask.overlap(bottom_mask, bottom_offset)
 
         if t_point or b_point:
-            return True
-        return False
+            run = False
 
 
 class Base:
@@ -134,7 +137,7 @@ class Base:
     WIDTH = BASE_IMG.get_width()
     IMG = BASE_IMG
 
-    def __init__(self,y):
+    def __init__(self, y):
         self.y = y
         self.x1 = 0
         self.x2 = self.WIDTH
@@ -153,16 +156,12 @@ class Base:
         win.blit(self.IMG, (self.x2, self.y))
 
 
-
-
-
-
 def draw_window(win, bird, pipes, base, score):
     win.blit(BG_IMGS, (0, 0))
     for pipe in pipes:
         pipe.draw(win)
     
-    text = STAT_FONT.render("Score: " + str(score), 1, (255,255,255))
+    text = STAT_FONT.render("Score: " + str(score), 1, (255, 255, 255))
     win.blit(text, (WIN_WIDTH - 10 - text.get_width(), 10))
     
     base.draw(win)
@@ -177,14 +176,18 @@ def main():
     pipes = [Pipe(D_between_pipes)]
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     clock = pygame.time.Clock()
-
     run = True
     while run:
-        clock.tick(30) # Framerate tied to the Timing
+        clock.tick(30)  # Framerate tied to the Timing
+        bird.move()
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                bird.jump()
+            if pipes[0].collide():
+                run = False
             if event.type == pygame.QUIT:
                 run = False
-        #bird.move()
+        
         add_pipe = False
         rem = []
         for pipe in pipes:
