@@ -116,7 +116,7 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        #bird.move()
+        bird.move()
         draw_window(window, bird)
 
 
