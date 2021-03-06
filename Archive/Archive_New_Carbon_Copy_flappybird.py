@@ -177,39 +177,36 @@ def main():
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     clock = pygame.time.Clock()
     run = True
+    bird_is_alive = True
     while run:
-        clock.tick(30)  # Framerate tied to the Timing
-        bird.move()
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                bird.jump()
-            #if pipes[0].collide():
-                #run = False
-            if event.type == pygame.QUIT:
-                run = False
-        
-        add_pipe = False
-        rem = []
-        for pipe in pipes:
-            if pipe.collide(bird):
-                run = False
-            if pipe.x + pipe.PIPE_TOP.get_width() < 0:
-                rem.append(pipe)
-            if not pipe.passed and pipe.x < bird.x:
-                pipe.passed = True
-                add_pipe = True
-            pipe.move()
+        while bird_is_alive:
+            clock.tick(30)  # Framerate tied to the Timing
+            bird.move()
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    bird.jump()
+                if event.type == pygame.QUIT:
+                    bird_is_alive = False
+                    run = False
+            
+            add_pipe = False
+            rem = []
+            for pipe in pipes:
+                pipe.move()
+                # check for collision
+                if pipe.collide(bird, win):
+                    bird_is_alive = False
 
-        if add_pipe:
-            score += 1 
-            pipes.append(Pipe(D_between_pipes))
-        for r in rem:
-            pipes.remove(r)  # delete the pipe
-        if bird.y + bird.img.get_height() >= 730:
-            pass
-        base.move()
-
-        draw_window(win, bird, pipes, base, score)
+            if add_pipe:
+                score += 1 
+                pipes.append(Pipe(D_between_pipes))
+            for r in rem:
+                pipes.remove(r)  # delete the pipe
+            if bird.y + bird.img.get_height() >= 730:
+                pass
+            base.move()
+            draw_window(win, bird, pipes, base, score)
+        draw_window(win, bird, pipes, base)
 
     pygame.quit()
     quit()

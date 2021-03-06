@@ -7,6 +7,8 @@ pygame.font.init()
 
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
+WHITE = (255,255,255)
+win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 global run
 run = True
 
@@ -165,7 +167,63 @@ class Base:
         win.blit(self.IMG, (self.x2, self.y))
 
 
-def draw_window(win, bird, pipes, base, score):
+click = pygame.MOUSEBUTTONDOWN
+
+
+class Button():
+    def __init__(self, x, y, text = ''):
+        self.color = (0)
+        self.width = WIN_WIDTH*0.4
+        self.height = WIN_WIDTH*0.09
+        self.x = x
+        self.y = y
+        self.text = text
+    def draw(self, centertext):
+        #outline
+        pygame.draw.rect(win, WHITE, (self.x - self.width/2 - 4, self.y - self.height/2 - 4, self.width + 8, self.height + 8), 0)
+
+        #button
+        pygame.draw.rect(win, self.color, (self.x - self.width/2, self.y - self.height/2, self.width, self.height), 0)
+        
+        if self.text != '':
+            font = pygame.font.SysFont('Corbel',70)
+            word = font.render(self.text, 0 , WHITE)
+            win.blit(word, (self.x - centertext, self.y - self.height/2 + 5))
+
+    #mouse interaction with button
+    def isOver(self, mouse_position):
+        if ((mouse_position[0] >= (self.x - self.width/2)) and (mouse_position[0] <= (self.x + self.width/2))) and ((mouse_position[1] >= (self.y - self.height/2)) and (mouse_position[1] <= (self.y + self.height/2))):
+            self.color = (100 , 100, 100)           
+            return True
+        else: 
+            self.color = (0)
+
+
+
+def DrawMenuWindow(win, bird, base):
+    start_button = Button(bird.x, bird.y - 200, 'Start')
+    option_button = Button(bird.x, bird.y - 150, 'Options')
+    exit_button = Button(bird.x, bird.y - 50, 'Exit')
+    win.blit(BG_IMGS, (0, 0))
+    base.draw(win)
+    bird.draw(win)
+    text = STAT_FONT.render("Welcome to Frappy Bird", 1, (255, 255, 255))
+    win.blit(text, (WIN_WIDTH/2 - text.get_width()/2, 10))
+    start_button.draw(70)
+    option_button.draw(105)
+    exit_button.draw(55)
+    pygame.display.update()
+'''
+def menuScreen():    
+    title = font.render("Pong.", 0 , WHITE)
+
+    
+    window.blit(title, (screen_width/2 - 200, 100))
+    start_button.draw(70)
+    option_button.draw(105)
+    exit_button.draw(55)
+'''
+def DrawGameplayWindow(win, bird, pipes, base, score):
     win.blit(BG_IMGS, (0, 0))
     for pipe in pipes:
         pipe.draw(win)
@@ -183,39 +241,50 @@ def main():
     bird = Bird(230, 350)
     base = Base(730)
     pipes = [Pipe(D_between_pipes)]
-    win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     clock = pygame.time.Clock()
     run = True
+    bird_is_alive = True
     while run:
-        clock.tick(30)  # Framerate tied to the Timing
-        bird.move()
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                bird.jump()
-            #if pipes[0].collide():
-                #run = False
-            if event.type == pygame.QUIT:
-                run = False
-        
-        add_pipe = False
-        rem = []
-        for pipe in pipes:
-            pipe.move()
-            # check for collision
-            if pipe.collide(bird, win):
-                run = False
+                if event.type == pygame.KEYDOWN:
+                    bird.jump()
+                if event.type == pygame.QUIT:
+                    bird_is_alive = False
+                    run = False
+        DrawMenuWindow(win, bird, base)
 
-        if add_pipe:
-            score += 1 
-            pipes.append(Pipe(D_between_pipes))
-        for r in rem:
-            pipes.remove(r)  # delete the pipe
-        if bird.y + bird.img.get_height() >= 730:
-            pass
-        base.move()
+        '''while bird_is_alive:
+            clock.tick(30)  # Framerate tied to the Timing
+            bird.move()
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    bird.jump()
+                if event.type == pygame.QUIT:
+                    bird_is_alive = False
+                    run = False
+            
+            add_pipe = False
+            rem = []
+            for pipe in pipes:
+                pipe.move()
+                # check for collision
+                if pipe.collide(bird, win):
+                    bird_is_alive = False
+                if pipe.x + pipe.PIPE_TOP.get_width() < 0:
+                    rem.append(pipe)
+                if not pipe.passed and pipe.x < bird.x:
+                    pipe.passed = True
+                    add_pipe = True
 
-        draw_window(win, bird, pipes, base, score)
-
+            if add_pipe:
+                score += 1 
+                pipes.append(Pipe(D_between_pipes))
+            for r in rem:
+                pipes.remove(r)  # delete the pipe
+            if bird.y + bird.img.get_height() >= 730:
+                pass
+            base.move()
+            DrawGameplayWindow(win, bird, pipes, base, score)'''
     pygame.quit()
     quit()
 
