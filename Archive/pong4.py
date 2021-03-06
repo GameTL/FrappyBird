@@ -177,7 +177,7 @@ class Button():
     #mouse interaction with button
     def isOver(self, mouse_position):
         if ((mouse_position[0] >= (self.x - self.width/2)) and (mouse_position[0] <= (self.x + self.width/2))) and ((mouse_position[1] >= (self.y - self.height/2)) and (mouse_position[1] <= (self.y + self.height/2))):
-                self.color = (100,100,100)           
+                self.color = (100,100,100)
                 return True
         else: 
             self.color = (0)
