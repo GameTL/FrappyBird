@@ -3,6 +3,7 @@ import os
 import random
 import pandas as pd
 import csv
+import re
 from os import path
 pygame.font.init()
 
@@ -26,6 +27,9 @@ BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "base
 BG_IMGS = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bg.png")))
 STAT_FONT = pygame.font.SysFont("comicsans", 50)
 
+
+
+###############################################
 
 class Bird:
     #inital_img = 
@@ -203,7 +207,6 @@ class Button():
             self.color = (0)
 
 
-###############################################
 class LeaderBoard:
     def __init__(self, x, y, text = ''):
         self.color = (0)
@@ -222,13 +225,15 @@ class LeaderBoard:
         with open('FrappyBird_Score.csv') as player_file:
             player_reader = csv.reader(player_file, delimiter=',')
             for row_key in list(player_reader)[1:row_count]:
-                print(row_key)
                 text = STAT_FONT.render(str(row_key), 1, (255, 255, 255))
                 win.blit(text, (WIN_WIDTH/2 - text.get_width()/2, y))
                 y += 40
-    
-    def write_to_csv(new_name, new_high_score):
+
+
+    def save_score(score):
         try:
+            new_name = "GameN"
+            new_high_score = score
             with open('FrappyBird_Score.csv', 'a', newline='') as score_file:
                     player_writer = csv.writer(score_file, delimiter=',')
                     player_writer.writerow([new_name, new_high_score])
@@ -242,10 +247,6 @@ class LeaderBoard:
 
 
 ###############################################
-"""
-text2 = STAT_FONT.render("btich", 1, (255, 255, 255))
-    win.blit(text, (WIN_WIDTH/2 - text2.get_width()/2, 10))\
-"""
 
 def menu_draw(win, bird, base, mouse_pos, event):
     global start_button
@@ -268,11 +269,7 @@ def menu_draw(win, bird, base, mouse_pos, event):
 
 def menu_mode():
         menu_draw(win, bird, base, mouse_pos, event)
-        if start_button.isOver(mouse_pos) and (event.type == click or pygame.MOUSEBUTTONDOWN):
-            gamplay_draw(win, bird, pipes, base, score, event)
-        if exit_button.isOver(mouse_pos) and (event.type == click or pygame.MOUSEBUTTONDOWN):
-            run = False
-        if event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN and bird_is_alive == True:
             gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive)  
 
 
@@ -305,6 +302,8 @@ def gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive):
             pipe.move()
             # check for collision
             if pipe.collide(bird, win):
+                LeaderBoard.save_score(score)
+                bird_is_alive = False
                 main()
             if pipe.x + pipe.PIPE_TOP.get_width() < 0:
                 rem.append(pipe)
@@ -332,7 +331,6 @@ def main():
     pipes = [Pipe(D_between_pipes)]
     clock = pygame.time.Clock()
     run = True
-    bird_is_alive = True
     mouse_pos = pygame.mouse.get_pos()
     while run:
         for event in pygame.event.get():
@@ -347,44 +345,46 @@ def main():
     pygame.quit()
     quit()
 
-
+bird_is_alive = True
 main()
 
+'''
+import pandas as pd
+from io import StringIO
+import re
+
+for_pd = StringIO()
+with open('MikeS159.csv') as mike:
+    for line in mike:
+        new_line = re.sub(r',', '|', line.rstrip(), count=7)
+        print (new_line, file=for_pd)
+
+for_pd.seek(0)
+
+df = pd.read_csv(for_pd, sep='|', header=None)
+print (df)
 
 
+
+
+add this 
+https://stackoverflow.com/questions/27713855/how-to-get-an-input-from-user-in-pygame-and-save-it-as-a-variable
+def ask(screen, question):
+    "ask(screen, question) -> answer"
+    pygame.font.init()
+    current_string = []
+    display_box(screen, question + ": " + string.join(current_string,""))
+    while 1:
+      inkey = get_key()
+      if inkey == K_BACKSPACE:
+        current_string = current_string[0:-1]
+      elif inkey == K_RETURN:
+        break
+      elif inkey == K_MINUS:
+        current_string.append("_")
+      elif inkey <= 127:
+        current_string.append(chr(inkey))
+      display_box(screen, question + ": " + string.join(current_string,""))
+    return string.join(current_string,"")
 '''
 
-def initalise_csv_file():
-    if str(path.exists('player_file.csv')) == 'False':
-        with open('player_file.csv', 'w', newline='') as player_file:
-            player_writer = csv.writer(player_file, delimiter=',')
-            player_writer.writerow(['Player', 'Score'])
-    if str(path.exists('player_file.csv')) == 'True':
-        pass
-
-
-def write_single_player_line_score_csv():
-    with open('player_file.csv', 'a', newline='') as player_file:
-        player_writer = csv.writer(player_file, delimiter=',')
-        player_writer.writerow([player_name, player_score])
-
-
-def read_single_player_line_score_csv():
-    with open('player_file.csv') as player_file:
-        player_reader = csv.reader(player_file, delimiter=',')
-        row_count = sum(1 for row in player_reader)
-        row_count_minus = row_count - 1
-    os.system(clear)
-    print('Your score is saved')
-    with open('player_file.csv') as player_file:
-        player_reader = csv.reader(player_file, delimiter=',')
-        for row in list(player_reader)[row_count_minus:row_count]:
-            print(row)
-
-
-def leaderboard_print():
-    print('-----------High Score Leaderboard-----------')
-    leaderboard = pd.read_csv("player_file.csv", delimiter=',')
-    leaderboard.sort_values(by='Score', ascending=False, inplace=True)
-    print(leaderboard.to_string(index=False))
-'''
