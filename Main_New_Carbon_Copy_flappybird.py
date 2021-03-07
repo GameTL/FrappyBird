@@ -1,8 +1,9 @@
 import pygame
-import neat
-import time
 import os
 import random
+import pandas as pd
+import csv
+from os import path
 pygame.font.init()
 
 WIN_WIDTH = 500
@@ -15,13 +16,14 @@ run = True
 click = pygame.MOUSEBUTTONDOWN
 FRAMERATE = int(60)
 VELOCITY_OBJECT = 2 #inital is 4 for 30fps
+D_between_pipes = 700  # distance of pipe spawning
+
 
 
 BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird1.png"))), pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird2.png"))), pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird3.png")))]
 PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "pipe.png")))
 BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "base.png")))
 BG_IMGS = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bg.png")))
-
 STAT_FONT = pygame.font.SysFont("comicsans", 50)
 
 
@@ -172,8 +174,6 @@ class Base:
 
 
 click = pygame.MOUSEBUTTONDOWN
-
-
 class Button():
     def __init__(self, x, y, text = ''):
         self.color = (0)
@@ -190,7 +190,7 @@ class Button():
         pygame.draw.rect(win, self.color, (self.x - self.width/2, self.y - self.height/2, self.width, self.height), 0)
         
         if self.text != '':
-            font = pygame.font.SysFont('Corbel',70)
+            font = pygame.font.SysFont('Corbel', 40)
             word = font.render(self.text, 0 , WHITE)
             win.blit(word, (self.x - centertext, self.y - self.height/2 + 5))
 
@@ -203,12 +203,55 @@ class Button():
             self.color = (0)
 
 
+###############################################
+class LeaderBoard:
+    def __init__(self, x, y, text = ''):
+        self.color = (0)
+        self.width = WIN_WIDTH*0.4
+        self.height = WIN_WIDTH*0.09
+        self.x = x
+        self.y = y
+        self.text = text
+    
+    def draw(y): # spacing y = 40
+        #try:
+        with open('FrappyBird_Score.csv', 'r', newline='') as score_file:
+            player_reader = csv.reader(score_file, delimiter=',')
+            row_count = sum(1 for row in player_reader)
 
-def DrawMenuWindow(win, bird, base, mouse_pos, event):
+        with open('FrappyBird_Score.csv') as player_file:
+            player_reader = csv.reader(player_file, delimiter=',')
+            for row_key in list(player_reader)[1:row_count]:
+                print(row_key)
+                text = STAT_FONT.render(str(row_key), 1, (255, 255, 255))
+                win.blit(text, (WIN_WIDTH/2 - text.get_width()/2, y))
+                y += 40
+    
+    def write_to_csv(new_name, new_high_score):
+        try:
+            with open('FrappyBird_Score.csv', 'a', newline='') as score_file:
+                    player_writer = csv.writer(score_file, delimiter=',')
+                    player_writer.writerow([new_name, new_high_score])
+        except:
+            #No csv found, a csv will be created with header
+            print("log: No csv not found, a csv named FrappyBird_Score")
+            with open('FrappyBird_Score.csv', 'w', newline='') as score_file:
+                player_writer = csv.writer(score_file, delimiter=',')
+                player_writer.writerow(['Name', 'High Score'])
+            write_to_csv(new_name, new_high_score)
+
+
+###############################################
+"""
+text2 = STAT_FONT.render("btich", 1, (255, 255, 255))
+    win.blit(text, (WIN_WIDTH/2 - text2.get_width()/2, 10))\
+"""
+
+def menu_draw(win, bird, base, mouse_pos, event):
     global start_button
     global option_button
     global exit_button
-    start_button = Button(bird.x, bird.y + 150, 'Start')
+    start_button = Button(bird.x + 25, bird.y + 400, 'Start')
     option_button = Button(bird.x, bird.y + 225, 'Options')
     exit_button = Button(bird.x, bird.y + 300, 'Exit')
     win.blit(BG_IMGS, (0, 0))
@@ -216,24 +259,24 @@ def DrawMenuWindow(win, bird, base, mouse_pos, event):
     bird.draw(win)
     text = STAT_FONT.render("Welcome to Frappy Bird", 1, (255, 255, 255))
     win.blit(text, (WIN_WIDTH/2 - text.get_width()/2, 10))
+    LeaderBoard.draw(10+40) # y
     start_button.draw(70)
-    option_button.draw(105)
-    exit_button.draw(55)
+    #option_button.draw(105)
+    #exit_button.draw(55)
     pygame.display.update()
     return start_button, exit_button, option_button
 
-
 def menu_mode():
-    DrawMenuWindow(win, bird, base, mouse_pos, event)
-    if start_button.isOver(mouse_pos) and (event.type == click or pygame.MOUSEBUTTONDOWN):
-        DrawGameplayWindow()
-    if exit_button.isOver(mouse_pos) and (event.type == click or pygame.MOUSEBUTTONDOWN):
-        run = False
-    if event.type == pygame.KEYDOWN:
-        gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive)  
+        menu_draw(win, bird, base, mouse_pos, event)
+        if start_button.isOver(mouse_pos) and (event.type == click or pygame.MOUSEBUTTONDOWN):
+            gamplay_draw(win, bird, pipes, base, score, event)
+        if exit_button.isOver(mouse_pos) and (event.type == click or pygame.MOUSEBUTTONDOWN):
+            run = False
+        if event.type == pygame.KEYDOWN:
+            gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive)  
 
 
-def DrawGameplayWindow(win, bird, pipes, base, score, event):
+def gamplay_draw(win, bird, pipes, base, score, event):
     win.blit(BG_IMGS, (0, 0))
     for pipe in pipes:
         pipe.draw(win)
@@ -278,7 +321,7 @@ def gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive):
         if bird.y + bird.img.get_height() >= 730:
             pass
         base.move()
-        DrawGameplayWindow(win, bird, pipes, base, score, event)
+        gamplay_draw(win, bird, pipes, base, score, event)
 
 
 def main():
@@ -300,36 +343,48 @@ def main():
                 bird.jump()
         menu_mode()
         
+        
     pygame.quit()
     quit()
 
 
-D_between_pipes = 700  # distance of pipe spawning
 main()
 
 
 
-
-
-
-#Note from nIKE
 '''
-class Paddle(pygame.sprite.Sprite):
-    def init(self, x, y):
-        super().init()
-        self.image = pygame.Surface([paddle_width, paddle_height])
-        self.image.fill(WHITE)
-        self.rect = self.image.get_rect()
-        self.rect.center = [x,y]
 
-    def moveUp(self):
-        if self.rect.y >= 0:
-            self.rect.y -= paddle_velocity
+def initalise_csv_file():
+    if str(path.exists('player_file.csv')) == 'False':
+        with open('player_file.csv', 'w', newline='') as player_file:
+            player_writer = csv.writer(player_file, delimiter=',')
+            player_writer.writerow(['Player', 'Score'])
+    if str(path.exists('player_file.csv')) == 'True':
+        pass
 
-    def moveDown(self):
-        if self.rect.y <= (screen_height - paddle_height):
-            self.rect.y += paddle_velocity
 
-if pygame.sprite.collide_rect(player_1, ball):
-       hit_sound.play()
-'''         
+def write_single_player_line_score_csv():
+    with open('player_file.csv', 'a', newline='') as player_file:
+        player_writer = csv.writer(player_file, delimiter=',')
+        player_writer.writerow([player_name, player_score])
+
+
+def read_single_player_line_score_csv():
+    with open('player_file.csv') as player_file:
+        player_reader = csv.reader(player_file, delimiter=',')
+        row_count = sum(1 for row in player_reader)
+        row_count_minus = row_count - 1
+    os.system(clear)
+    print('Your score is saved')
+    with open('player_file.csv') as player_file:
+        player_reader = csv.reader(player_file, delimiter=',')
+        for row in list(player_reader)[row_count_minus:row_count]:
+            print(row)
+
+
+def leaderboard_print():
+    print('-----------High Score Leaderboard-----------')
+    leaderboard = pd.read_csv("player_file.csv", delimiter=',')
+    leaderboard.sort_values(by='Score', ascending=False, inplace=True)
+    print(leaderboard.to_string(index=False))
+'''
