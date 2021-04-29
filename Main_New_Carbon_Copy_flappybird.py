@@ -11,11 +11,12 @@ WIN_WIDTH = 500
 WIN_HEIGHT = 800
 WHITE = (255,255,255)
 D_between_pipes = 700
-win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+win = pygame.display.set_mode(
+    (WIN_WIDTH, WIN_HEIGHT))
 global run
 run = True
 click = pygame.MOUSEBUTTONDOWN
-FRAMERATE = int(60)
+FRAMERATE = int(50)
 VELOCITY_OBJECT = 2 #inital is 4 for 30fps
 D_between_pipes = 700  # distance of pipe spawning
 
@@ -267,10 +268,11 @@ def menu_draw(win, bird, base, mouse_pos, event):
     pygame.display.update()
     return start_button, exit_button, option_button
 
+
 def menu_mode():
-        menu_draw(win, bird, base, mouse_pos, event)
-        if event.type == pygame.KEYDOWN and bird_is_alive == True:
-            gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive)  
+    menu_draw(win, bird, base, mouse_pos, event)
+    if event.type == pygame.KEYDOWN and bird_is_alive == True:
+        gameplay_mode(win, bird, pipes, base, score, event, clock, bird_is_alive)  
 
 
 def gamplay_draw(win, bird, pipes, base, score, event):
